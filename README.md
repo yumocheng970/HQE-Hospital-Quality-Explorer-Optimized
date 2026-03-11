@@ -1,2 +1,2 @@
 ##
-Group member: Yumo Cheng, Dawei Feng, Iris Ge
+Group members: Yumo Cheng, Dawei Feng, Iris Ge
