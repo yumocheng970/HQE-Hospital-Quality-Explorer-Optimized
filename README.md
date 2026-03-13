@@ -2,6 +2,7 @@
 Group member: Yumo Cheng, Dawei Feng, Iris Ge
 
 ## Structure
+```
 hospital-quality-explorer/
 ├── docs/          # Wireframes and design sketches
 ├── src/
@@ -12,3 +13,4 @@ hospital-quality-explorer/
 ├── README.md
 ├── requirements.txt
 └── .gitignore
+```
