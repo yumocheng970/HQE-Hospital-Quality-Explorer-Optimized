@@ -1,18 +1,20 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import SearchPage from './pages/SearchPage.jsx'
-import HospitalDetailPage from './pages/HospitalDetailPage.jsx'
-import './App.css'
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import SearchPage from './SearchPage';
 
-function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<SearchPage />} />
-        <Route path="/hospitals/:id" element={<HospitalDetailPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
-  )
+// Placeholder for the hospital detail page
+function DetailPage() {
+  return <div className="p-8 text-2xl font-bold">医院详情页 (建设中...)</div>;
 }
 
-export default App
+export default function App() {
+  return (
+    <BrowserRouter>
+      <div className="min-h-screen bg-gray-50">
+        <Routes>
+          <Route path="/" element={<SearchPage />} />
+          <Route path="/hospital/:id" element={<DetailPage />} />
+        </Routes>
+      </div>
+    </BrowserRouter>
+  );
+}
