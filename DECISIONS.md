@@ -52,7 +52,7 @@ sqlite3.OperationalError: no such column: hospital_name
 
 ## v0.2
 
-### Decision 5: Handle each measure table separately (Accepted)
+### Decision 1: Handle each measure table separately (Accepted)
 
 **Date:** 2026-03-26
 **Decision:** Write separate query logic for each measure table instead of one shared query.
@@ -60,7 +60,7 @@ sqlite3.OperationalError: no such column: hospital_name
 
 ---
 
-### Decision 6: Only show CompareBadge when data has `compared_to_national` (Accepted)
+### Decision 2: Only show CompareBadge when data has `compared_to_national` (Accepted)
 
 **Date:** 2026-03-27
 **Decision:** The frontend checks if `compared_to_national` exists in the response before rendering CompareBadge, instead of hardcoding a list of tables.
@@ -68,7 +68,7 @@ sqlite3.OperationalError: no such column: hospital_name
 
 ---
 
-### Decision 7: Add `facility_id` param to stats endpoint instead of making a new one (Accepted)
+### Decision 3: Add `facility_id` param to stats endpoint instead of making a new one (Accepted)
 
 **Date:** 2026-03-27
 **Decision:** Added `facility_id` as an optional query parameter to `/api/stats/measures/<table>` so the detail page can use it too.
