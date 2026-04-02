@@ -50,9 +50,41 @@ sqlite3.OperationalError: no such column: hospital_name
 
 ---
 
+---
+
+v0.1 — Dawei Feng
+
+### Decision 5: URL-Driven Search with useSearchParams (Accepted)
+
+**Date:** 2026-03-22
+**Decision:** Use React Router's useSearchParams to store search state in the URL instead of component state alone.
+**Reasoning:** If search state only lives in useState, navigating to a hospital detail page and pressing Back loses the search results — the component remounts with empty state. Putting the parameters in the URL (?name=General&state=CA) means the useEffect can re-fetch on mount using whatever is in the URL. It also means users can share or bookmark a search.
+
+**Trade-offs**
+
+- Every Back navigation re-fetches from the server. Could add client-side caching later but not worth the complexity for v0.1.
+
+---
+
+### Decision 6: Two-Step Search — Local State Then URL Update (Accepted)
+
+**Date:** 2026-03-22
+**Decision:** Typing in the search box updates local useState only. The actual search is triggered by updating the URL via setSearchParams when the user clicks Search or presses Enter.
+**Reasoning:** If every keystroke triggered a fetch, we would spam the API on every character typed. Separating input state from search state means the user can type freely and only commit when ready. The useEffect watching searchParams handles the rest.
+
+---
+
+### Decision 7: Sync Local State from URL in useEffect (Accepted)
+
+**Date:** 2026-03-22
+**Decision:** Inside the useEffect that watches searchParams, manually call setSearchName and setSelectedState to sync the input fields with the URL.
+**Reasoning:** useState initial values only apply on first mount. If the user navigates back, the component remounts with the correct URL but useState does not re-read the initial value in all cases. Explicitly syncing inside the effect guarantees the input box and dropdown always match the URL, regardless of how the user arrived at the page.
+
+---
+
 ## v0.2
 
-### Decision 1: Handle each measure table separately (Accepted)
+### Decision 1: Handle Each Measure Table Separately (Accepted)
 
 **Date:** 2026-03-26
 **Decision:** Write separate query logic for each measure table instead of one shared query.
@@ -60,7 +92,7 @@ sqlite3.OperationalError: no such column: hospital_name
 
 ---
 
-### Decision 2: Only show CompareBadge when data has `compared_to_national` (Accepted)
+### Decision 2: Only Show CompareBadge When Data Has `compared_to_national` (Accepted)
 
 **Date:** 2026-03-27
 **Decision:** The frontend checks if `compared_to_national` exists in the response before rendering CompareBadge, instead of hardcoding a list of tables.
@@ -68,8 +100,52 @@ sqlite3.OperationalError: no such column: hospital_name
 
 ---
 
-### Decision 3: Add `facility_id` param to stats endpoint instead of making a new one (Accepted)
+### Decision 3: Add `facility_id` Param to Stats Endpoint Instead of Making a New One (Accepted)
 
 **Date:** 2026-03-27
 **Decision:** Added `facility_id` as an optional query parameter to `/api/stats/measures/<table>` so the detail page can use it too.
 **Reasoning:** The detail page needs measure data for one specific hospital. We thought about making a new endpoint like `/api/hospitals/<id>/measures/<table>` but it would do the same thing. Not worth the extra work right now.
+
+---
+
+---
+
+v0.2 — Dawei Feng
+
+### Decision 4: Extract Shared Components Before Building New Pages (Accepted)
+
+**Date:** 2026-04-01
+**Decision:** Extract Spinner, ErrorMessage, and EmptyState into components/common/ and write a shared useFetch hook in hooks/ before starting Dashboard or QueryPage.
+**Reasoning:** Both my pages (Dashboard, QueryPage) and my teammate's Detail page upgrade need loading, error, and empty states. Building these first avoids duplication and gives us a consistent look across the app. My teammate can import them directly into HospitalDetailPage.
+
+---
+
+### Decision 5: Observable Plot with useRef + useEffect (Accepted)
+
+**Date:** 2026-04-01
+**Decision:** Render Observable Plot charts by targeting a useRef container inside a useEffect, rather than trying to use Plot as a React component.
+**Reasoning:** Observable Plot is not a React library — it returns a DOM node. The recommended pattern from the technical spec is to use useRef to get a container div, then call Plot.plot() inside useEffect and append the result. Tried to find a React wrapper but none were well-maintained. This approach is explicit and easy to explain in the walkthrough.
+
+**Trade-offs**
+
+- Have to manually clean up the previous chart on re-render (remove the old child node before appending the new one).
+
+---
+
+### Decision 6: Template Matching with Regex in parseQuery.js (Accepted)
+
+**Date:** 2026-04-01
+**Decision:** Parse user queries using regular expressions in a standalone utils/parseQuery.js file, mapping matched patterns to API parameters.
+**Reasoning:** The spec requires Level 2 template matching before any LLM integration. Regex handles patterns like "hospitals in [state] with [rating] stars" well enough. Keeping the parsing logic in a utility file separates it from the UI component (QueryBar.jsx) and makes it testable on its own.
+
+**Trade-offs**
+
+- Limited to patterns we explicitly define. Anything outside our templates returns a "not understood" message. This is expected at Level 2.
+
+---
+
+### Decision 7: Chat-Style UI for Query Interface (Accepted)
+
+**Date:** 2026-04-01
+**Decision:** Display query results in a chat-style conversation layout instead of replacing the results inline.
+**Reasoning:** The spec says "chat-style input." Showing the user's question and the system's response as a conversation thread makes it clear what was asked and what was returned, especially when the user asks multiple questions in a row.
