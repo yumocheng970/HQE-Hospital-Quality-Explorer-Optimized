@@ -1,0 +1,2 @@
+FLASK_APP=server.main
+FLASK_RUN_PORT=3001
