@@ -4,10 +4,10 @@ import sqlite3
 import os
 import io
 
-# ── 输出路径 ──────────────────────────────────────────────
+#  Output Path
 DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'hospital_quality.db')
 
-# ── CMS 数据集 ID ─────────────────────────────────────────
+#  CMS DateSets ID
 DATASETS = {
     'hospitals':          'xubh-q36u',
     'complications':      'ynj2-r877',
@@ -24,11 +24,11 @@ NULL_STRINGS = ['Not Available', 'N/A', 'Not Applicable', '-', '']
 
 def fetch_dataset(dataset_id: str) -> pd.DataFrame:
     url = BASE_URL.format(dataset_id)
-    print(f'  下载 {url}...')
+    print(f'  Downloading {url}...')
     resp = requests.get(url, timeout=60)
     resp.raise_for_status()
     df = pd.read_csv(io.StringIO(resp.text))
-    print(f'  完成，共 {len(df)} 行')
+    print(f'  Done, {len(df)} rows')
     return df
 
 def clean(df: pd.DataFrame) -> pd.DataFrame:
@@ -44,7 +44,7 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
 
 def load(df: pd.DataFrame, table: str, conn: sqlite3.Connection):
     df.to_sql(table, conn, if_exists='replace', index=False)
-    print(f'  写入 {table}：{len(df)} 行')
+    print(f'  Loaded {table}: {len(df)} rows')
 
 def add_indexes(conn: sqlite3.Connection):
     cur = conn.cursor()
@@ -52,26 +52,26 @@ def add_indexes(conn: sqlite3.Connection):
         try:
             cur.execute(f'CREATE INDEX IF NOT EXISTS idx_{t}_facility ON {t}(facility_id)')
         except sqlite3.OperationalError as e:
-            print(f'  索引跳过 {t}.facility_id: {e}')
+            print(f'  Skipped index {t}.facility_id: {e}')
     conn.commit()
-    print('索引创建完成')
+    print('Indexes created')
 
 def main():
-    print(f'数据库路径：{os.path.abspath(DB_PATH)}')
+    print(f'Database path: {os.path.abspath(DB_PATH)}')
     conn = sqlite3.connect(DB_PATH)
 
     for table, dataset_id in DATASETS.items():
-        print(f'\n── {table} ──')
+        print(f'\n{table}')
         try:
             df = fetch_dataset(dataset_id)
             df = clean(df)
             load(df, table, conn)
         except Exception as e:
-            print(f'  错误：{e}')
+            print(f'  Error: {e}')
 
     add_indexes(conn)
     conn.close()
-    print('\nETL 完成')
+    print('\nETL Done')
 
 if __name__ == '__main__':
     main()
