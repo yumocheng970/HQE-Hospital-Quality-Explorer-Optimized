@@ -21,7 +21,7 @@
 | `Navbar` with links to Search, Dashboard (placeholder), Map (placeholder) | Ge Ge | Done |
 | `HospitalCard` styled with Tailwind | Ge Ge | Done |
 | Responsive layout verified at ≥1024px and ≥768px | Ge Ge | Done |
-| README with setup instructions | All | |
+| README with setup instructions | All | Done |
 | DECISIONS.md: 3 decisions + 1 debugging story | All ||
 
 ### v0.2 — April 3
