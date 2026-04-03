@@ -1,39 +1,12 @@
-import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import useFetch from '../hooks/useFetch';
+import Spinner from '../components/common/Spinner';
+import ErrorMessage from '../components/common/ErrorMessage';
+import EmptyState from '../components/common/EmptyState';
 
 export default function HospitalDetailPage() {
   const { id } = useParams();
-
-  const [hospital, setHospital] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    async function loadHospital() {
-      try {
-        setLoading(true);
-        setError('');
-
-        const res = await fetch(`http://localhost:3001/api/hospitals/${id}`);
-
-        if (!res.ok) {
-          if (res.status === 404) {
-            throw new Error('Hospital not found.');
-          }
-          throw new Error('Failed to load hospital details.');
-        }
-
-        const data = await res.json();
-        setHospital(data);
-      } catch (err) {
-        setError(err.message || 'Something went wrong.');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadHospital();
-  }, [id]);
+  const { data: hospital, loading, error } = useFetch(`/api/hospitals/${id}`);
 
   if (loading) {
     return (
@@ -42,7 +15,7 @@ export default function HospitalDetailPage() {
           ← Back to Search
         </Link>
         <div className="mt-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-          <p className="text-gray-600">Loading hospital details...</p>
+          <Spinner message="Loading hospital details..." />
         </div>
       </div>
     );
@@ -54,8 +27,8 @@ export default function HospitalDetailPage() {
         <Link to="/" className="text-blue-600 hover:text-blue-700 font-medium">
           ← Back to Search
         </Link>
-        <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-6 shadow-sm">
-          <p className="text-red-700 font-medium">{error}</p>
+        <div className="mt-6">
+          <ErrorMessage message={error} />
         </div>
       </div>
     );
@@ -67,8 +40,11 @@ export default function HospitalDetailPage() {
         <Link to="/" className="text-blue-600 hover:text-blue-700 font-medium">
           ← Back to Search
         </Link>
-        <div className="mt-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-          <p className="text-gray-600">No hospital data available.</p>
+        <div className="mt-6">
+          <EmptyState
+            title="No hospital data"
+            message="This hospital record could not be loaded."
+          />
         </div>
       </div>
     );
@@ -102,30 +78,30 @@ export default function HospitalDetailPage() {
           </div>
         </div>
 
-              <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="text-2xl font-bold text-gray-900">Quality Summary</h2>
+        <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="text-2xl font-bold text-gray-900">Quality Summary</h2>
 
-        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-          <SummaryCard
-            title="Mortality Measures"
-            better={hospital.count_of_mort_measures_better}
-            same={hospital.count_of_mort_measures_no_different}
-            worse={hospital.count_of_mort_measures_worse}
-          />
-          <SummaryCard
-            title="Safety Measures"
-            better={hospital.count_of_safety_measures_better}
-            same={hospital.count_of_safety_measures_no_different}
-            worse={hospital.count_of_safety_measures_worse}
-          />
-          <SummaryCard
-            title="Readmission Measures"
-            better={hospital.count_of_readm_measures_better}
-            same={hospital.count_of_readm_measures_no_different}
-            worse={hospital.count_of_readm_measures_worse}
-          />
+          <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <SummaryCard
+              title="Mortality Measures"
+              better={hospital.count_of_mort_measures_better}
+              same={hospital.count_of_mort_measures_no_different}
+              worse={hospital.count_of_mort_measures_worse}
+            />
+            <SummaryCard
+              title="Safety Measures"
+              better={hospital.count_of_safety_measures_better}
+              same={hospital.count_of_safety_measures_no_different}
+              worse={hospital.count_of_safety_measures_worse}
+            />
+            <SummaryCard
+              title="Readmission Measures"
+              better={hospital.count_of_readm_measures_better}
+              same={hospital.count_of_readm_measures_no_different}
+              worse={hospital.count_of_readm_measures_worse}
+            />
+          </div>
         </div>
-      </div>
 
         <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2">
           <InfoCard label="Hospital Type" value={hospital.hospital_type} />
@@ -149,7 +125,6 @@ function InfoCard({ label, value }) {
       <p className="text-sm font-medium text-gray-500">{label}</p>
       <p className="mt-1 text-gray-900 font-semibold">{value || 'N/A'}</p>
     </div>
-    
   );
 }
 
