@@ -39,7 +39,7 @@ def measures_stats(table):
 
     db = get_db()
 
-    # patient_experience 字段名不同，单独处理
+    # patient_experience has different field names, handle separately
     if table == 'patient_experience':
         sql    = "SELECT * FROM patient_experience WHERE 1=1"
         params = []
@@ -53,7 +53,7 @@ def measures_stats(table):
         db.close()
         return jsonify([dict(r) for r in rows])
 
-    # readmissions 没有 measure_id，单独处理
+    # readmissions has no measure_id, handle separately
     if table == 'readmissions':
         sql    = "SELECT * FROM readmissions WHERE 1=1"
         params = []

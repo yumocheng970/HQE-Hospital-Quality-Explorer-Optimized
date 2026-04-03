@@ -31,7 +31,7 @@ def lookup_measures(table):
         db.close()
         return jsonify([dict(r) for r in rows])
 
-    # readmissions 没有 measure_id，用 measure_name 作为唯一标识
+    # readmissions has no measure_id, use measure_name as unique identifier
     if table == 'readmissions':
         rows = db.execute("""
             SELECT DISTINCT measure_name
@@ -41,7 +41,7 @@ def lookup_measures(table):
         db.close()
         return jsonify([{'measure_id': None, 'measure_name': r['measure_name']} for r in rows])
 
-    # complications / infections / timely_care / payment
+    # complications, infections, timely_care, payment
     rows = db.execute(f"""
         SELECT DISTINCT measure_id, measure_name
         FROM {table}
