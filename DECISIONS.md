@@ -149,3 +149,18 @@ v0.2 — Dawei Feng
 **Date:** 2026-04-01
 **Decision:** Display query results in a chat-style conversation layout instead of replacing the results inline.
 **Reasoning:** The spec says "chat-style input." Showing the user's question and the system's response as a conversation thread makes it clear what was asked and what was returned, especially when the user asks multiple questions in a row.
+
+---
+
+v0.2 - Iris Ge 
+
+### Decision 8: Centralized Loading / Error / Empty State Handling with Shared Hook (Accepted)
+
+**Date:** 2026-04-02
+**Decision:** Extract loading, error, and empty states into shared components (Spinner, ErrorMessage, EmptyState) and create a reusable useFetch hook for all API calls.
+**Reasoning:** Multiple pages (Search, Dashboard, Detail) need to handle the same async states. Without abstraction, each page would repeat useState + useEffect logic and UI patterns. By centralizing both data fetching (useFetch) and UI states (common components), we ensure consistent behavior and appearance across the app. It also reduces boilerplate and makes it easier for teammates to integrate without rewriting fetch logic.
+
+**Trade-offs** 
+
+- Less flexibility for highly customized fetch behavior (e.g., manual retries or special caching strategies).
+- useFetch abstracts away details, which can make debugging slightly harder if something goes wrong.
