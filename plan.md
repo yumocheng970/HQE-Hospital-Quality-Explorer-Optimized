@@ -7,35 +7,35 @@
 
 | What | Who | Done? |
 |------|-----|-------|
-| ETL downloads 7 CMS CSVs, loads into `hospital_quality.db`, row counts verified | Yumo | |
-| `lat`/`lon` geocoded via Census Bureau API for ≥90% of hospitals | Yumo | |
-| `app.db` with `users` table; two hardcoded accounts (admin, user) with bcrypt passwords | Yumo | |
-| `GET /api/hospitals` filters by `state` and `name`; returns `400` if no params | Yumo | |
-| `GET /api/hospitals/:id` returns facility record; `404` for unknown ID | Yumo | |
-| `GET /api/lookup/states` returns states with hospital counts | Yumo | |
-| React + Vite scaffolded; Tailwind configured; `/api` proxied to `localhost:3001` | Dawei | |
-| React Router with routes `/` and `/hospitals/:id` | Dawei | |
-| `api/index.js` fetch wrapper with error handling | Dawei | |
-| `SearchPage`: state dropdown, name input, results as `HospitalCard`; loading/error/empty states | Dawei | |
-| `HospitalDetailPage`: name, address, type, ownership, rating; loading/error states | Dawei | |
-| `Navbar` with links to Search, Dashboard (placeholder), Map (placeholder) | Ge Ge | |
-| `HospitalCard` styled with Tailwind | Ge Ge | |
-| Responsive layout verified at ≥1024px and ≥768px | Ge Ge | |
+| ETL downloads 7 CMS CSVs, loads into `hospital_quality.db`, row counts verified | Yumo | Done |
+| `lat`/`lon` geocoded via Census Bureau API for ≥90% of hospitals | Yumo | Done |
+| `app.db` with `users` table; two hardcoded accounts (admin, user) with bcrypt passwords | Yumo | Done |
+| `GET /api/hospitals` filters by `state` and `name`; returns `400` if no params | Yumo | Done |
+| `GET /api/hospitals/:id` returns facility record; `404` for unknown ID | Yumo | Done |
+| `GET /api/lookup/states` returns states with hospital counts | Yumo | Done |
+| React + Vite scaffolded; Tailwind configured; `/api` proxied to `localhost:3001` | Dawei | Done |
+| React Router with routes `/` and `/hospitals/:id` | Dawei | Done |
+| `api/index.js` fetch wrapper with error handling | Dawei | Done |
+| `SearchPage`: state dropdown, name input, results as `HospitalCard`; loading/error/empty states | Dawei | Done |
+| `HospitalDetailPage`: name, address, type, ownership, rating; loading/error states | Dawei | Done |
+| `Navbar` with links to Search, Dashboard (placeholder), Map (placeholder) | Ge Ge | Done |
+| `HospitalCard` styled with Tailwind | Ge Ge | Done |
+| Responsive layout verified at ≥1024px and ≥768px | Ge Ge | Done |
 | README with setup instructions | All | |
-| DECISIONS.md: 3 decisions + 1 debugging story | All | |
+| DECISIONS.md: 3 decisions + 1 debugging story | All ||
 
 ### v0.2 — April 3
 
 | What | Who | Done? |
 |------|-----|-------|
-| `GET /api/stats/ratings-by-state` | Yumo | |
-| `GET /api/stats/measures/:table` with `measure_id` and `group_by` params | Yumo | |
-| `GET /api/lookup/measures/:table` | Yumo | |
-| `DashboardPage` with state dropdown triggering fetch → Observable Plot bar chart re-render | Dawei | |
-| `HospitalDetailPage` updated with measure data and `compared_to_national` values | Dawei | |
-| `CompareBadge` component with color coding | Dawei | |
-| Loading spinners, error messages, empty states throughout | Ge Ge | |
-| Tailwind consistent across all new components | Ge Ge | |
+| `GET /api/stats/ratings-by-state` | Yumo | Done |
+| `GET /api/stats/measures/:table` with `measure_id` and `group_by` params | Yumo | Done |
+| `GET /api/lookup/measures/:table` | Yumo | Done |
+| `DashboardPage` with state dropdown triggering fetch → Observable Plot bar chart re-render | Dawei | Done |
+| `HospitalDetailPage` updated with measure data and `compared_to_national` values | Dawei | Done |
+| `CompareBadge` component with color coding | Dawei | Done |
+| Loading spinners, error messages, empty states throughout | Ge Ge | Done |
+| Tailwind consistent across all new components | Ge Ge | Done |
 | DECISIONS.md updated | All | |
 
 ### v0.3 — April 17
