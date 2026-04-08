@@ -19,6 +19,7 @@ DATASETS = {
 }
 
 BASE_URL = 'https://data.cms.gov/provider-data/api/1/datastore/query/{}/0/download?format=csv'
+ZIP_URL  = 'https://raw.githubusercontent.com/midwire/free_zipcode_data/master/all_us_zipcodes.csv'
 
 NULL_STRINGS = ['Not Available', 'N/A', 'Not Applicable', '-', '']
 
@@ -31,6 +32,16 @@ def fetch_dataset(dataset_id: str) -> pd.DataFrame:
     print(f'  Done, {len(df)} rows')
     return df
 
+def fetch_zipcode_latlon() -> pd.DataFrame:
+    print('\nDownloading zipcode lat/lon data...')
+    resp = requests.get(ZIP_URL, timeout=60)
+    resp.raise_for_status()
+    df = pd.read_csv(io.StringIO(resp.text), dtype={'code': str})
+    df = df[['code', 'lat', 'lon']].dropna()
+    df['code'] = df['code'].str.zfill(5)
+    print(f'  Done, {len(df)} zipcodes')
+    return df
+
 def clean(df: pd.DataFrame) -> pd.DataFrame:
     df.columns = (
         df.columns.str.strip()
@@ -41,6 +52,14 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     df = df.replace(NULL_STRINGS, None)
     df = df.where(df.notna(), None)
     return df
+
+def add_latlon(hospitals: pd.DataFrame, zipcodes: pd.DataFrame) -> pd.DataFrame:
+    hospitals['zip_str'] = hospitals['zip_code'].astype(str).str.zfill(5).str[:5]
+    merged = hospitals.merge(zipcodes, left_on='zip_str', right_on='code', how='left')
+    merged = merged.drop(columns=['zip_str', 'code'])
+    matched = merged['lat'].notna().sum()
+    print(f'  Geocoded {matched}/{len(merged)} hospitals via zipcode')
+    return merged
 
 def load(df: pd.DataFrame, table: str, conn: sqlite3.Connection):
     df.to_sql(table, conn, if_exists='replace', index=False)
@@ -60,11 +79,15 @@ def main():
     print(f'Database path: {os.path.abspath(DB_PATH)}')
     conn = sqlite3.connect(DB_PATH)
 
+    zipcodes = fetch_zipcode_latlon()
+
     for table, dataset_id in DATASETS.items():
         print(f'\n{table}')
         try:
             df = fetch_dataset(dataset_id)
             df = clean(df)
+            if table == 'hospitals':
+                df = add_latlon(df, zipcodes)
             load(df, table, conn)
         except Exception as e:
             print(f'  Error: {e}')
