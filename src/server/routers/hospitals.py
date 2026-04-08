@@ -41,6 +41,29 @@ def list_hospitals():
     return jsonify([dict(r) for r in rows])
 
 
+# ── GET /api/hospitals/map ───────────────────────────────────
+@hospitals_bp.route('/api/hospitals/map', methods=['GET'])
+def map_hospitals():
+    state = request.args.get('state', '').strip()
+
+    sql    = """
+        SELECT facility_id, facility_name, lat, lon, hospital_overall_rating
+        FROM hospitals
+        WHERE lat IS NOT NULL AND lon IS NOT NULL
+    """
+    params = []
+
+    if state:
+        sql += " AND state = ?"
+        params.append(state.upper())
+
+    db   = get_db()
+    rows = db.execute(sql, params).fetchall()
+    db.close()
+
+    return jsonify([dict(r) for r in rows])
+
+
 # ── GET /api/hospitals/states ────────────────────────────────
 @hospitals_bp.route('/api/hospitals/states', methods=['GET'])
 def list_states():
@@ -77,14 +100,14 @@ def get_hospital(facility_id):
     return jsonify(result)
 
 
-# ── 内部工具 ─────────────────────────────────────────────────
+# ── INTERNAL UTILITIES ─────────────────────────────────────
 TABLE_COLUMNS = {
-    'complications':    'measure_id, measure_name, score, lower_estimate, higher_estimate, compared_to_national, start_date, end_date',
-    'infections':       'measure_id, measure_name, score, compared_to_national, start_date, end_date',
-    'readmissions':     'measure_name, excess_readmission_ratio, predicted_readmission_rate, expected_readmission_rate, number_of_readmissions, start_date, end_date',
+    'complications':      'measure_id, measure_name, score, lower_estimate, higher_estimate, compared_to_national, start_date, end_date',
+    'infections':         'measure_id, measure_name, score, compared_to_national, start_date, end_date',
+    'readmissions':       'measure_name, excess_readmission_ratio, predicted_readmission_rate, expected_readmission_rate, number_of_readmissions, start_date, end_date',
     'patient_experience': 'hcahps_measure_id, hcahps_question, hcahps_answer_description, hcahps_answer_percent, patient_survey_star_rating, start_date, end_date',
-    'timely_care':      'condition, measure_id, measure_name, score, start_date, end_date',
-    'payment':          'payment_measure_id, payment_measure_name, payment_category, payment, lower_estimate, higher_estimate, start_date, end_date',
+    'timely_care':        'condition, measure_id, measure_name, score, start_date, end_date',
+    'payment':            'payment_measure_id, payment_measure_name, payment_category, payment, lower_estimate, higher_estimate, start_date, end_date',
 }
 
 def _fetch(db, table, facility_id):
