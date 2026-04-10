@@ -164,3 +164,25 @@ v0.2 - Iris Ge
 
 - Less flexibility for highly customized fetch behavior (e.g., manual retries or special caching strategies).
 - useFetch abstracts away details, which can make debugging slightly harder if something goes wrong.
+
+
+## v0.3
+
+### Decision 1: Zipcode-Based Geocoding Instead of Census API (Accepted)
+**Date:** 2026-04-08
+
+**Decision:** Add lat/lon to the hospitals table by joining against a free zipcode-to-coordinates CSV instead of calling the Census Bureau Geocoding API.
+
+**Reasoning:** The original plan used the Census API, but it requires one HTTP request per hospital (5,400+ hospitals), which would take a long time and could hit rate limits. The zipcode CSV approach is a single download and a pandas merge — it ran in seconds. Most data of all hospitals are matched, which is good enough for a map view.
+
+**Trade-offs:** Zipcode centroids are less accurate than street-level geocoding. For a map showing hospital distribution this is fine, but it would not work for precise routing or proximity search.
+
+---
+### Dead End 2: CSV Endpoint Returning HTML Instead of CSV (Resolved)
+**Date:** 2026-04-08
+
+**What happened:** After implementing /api/export/csv, the endpoint was returning an HTML page instead of a CSV file. I assumed the issue was with the cookie path — the cookies.txt file was in the wrong directory, so the session was not being sent and require_auth was redirecting to an error page.
+
+**Resolution:** Checked the server logs and found a 500 error, not a 401. The real problem was a typo in export.py: writer.writerows([dict(row) for r in rows]) — the variable inside the list comprehension was row but the loop variable was r. Flask was returning its default error page because the endpoint was crashing before it could return anything. Fixed the typo and the CSV downloaded correctly.
+**Lesson:** Check the server logs before assuming the problem is in the request. The HTTP status code tells whether it is an auth issue (401) or a server crash (500).
+
