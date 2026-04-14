@@ -29,6 +29,7 @@ export default function useFetch(path) {
       try {
         const res = await fetch(`${API_BASE}${path}`, {
           signal: controller.signal,
+          credentials: 'include',
         });
 
         if (!res.ok) {

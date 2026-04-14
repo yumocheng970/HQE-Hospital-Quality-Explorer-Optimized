@@ -19,6 +19,12 @@ export default function DashboardPage() {
     // Starts as null; React sets chartRef.current to the DOM element after render
     // Used because Observable Plot generates raw DOM nodes, not React components
     const chartRef = useRef(null);
+    const typeChartRef = useRef(null);
+
+    // ── Hospital Type Distribution ──
+    // Backend endpoint: GET /api/stats/types-by-state
+    // Expected response: [{ state, hospital_type, count }, ...]
+    const { data: typeData } = useFetch("/api/stats/types-by-state");
 
     // Extract unique state names from data, prepend "ALL", sort alphabetically
     // new Set() removes duplicates, ... spreads it into an array
@@ -90,6 +96,53 @@ export default function DashboardPage() {
         return () => plot.remove();
     }, [filtered, selectedState]);
 
+    // ── Hospital Type chart: filter + aggregate + render ──
+    const filteredTypes =
+        typeData && selectedState === "ALL"
+            ? typeData
+            : typeData?.filter((d) => d.state === selectedState);
+
+    useEffect(() => {
+        if (!filteredTypes || !typeChartRef.current) return;
+        typeChartRef.current.innerHTML = "";
+
+        // Aggregate counts by hospital_type (needed when "ALL" is selected)
+        const chartData = Object.values(
+            filteredTypes.reduce((acc, d) => {
+                const t = d.hospital_type;
+                if (!acc[t]) acc[t] = { hospital_type: t, count: 0 };
+                acc[t].count += d.count;
+                return acc;
+            }, {})
+        ).sort((a, b) => b.count - a.count); // sort descending by count
+
+        const title =
+            selectedState === "ALL"
+                ? "Hospital Types — All States"
+                : `Hospital Types — ${selectedState}`;
+
+        const plot = Plot.plot({
+            title,
+            width: 700,
+            height: 400,
+            marginLeft: 180, // room for long type labels
+            x: { label: "Number of Hospitals", grid: true },
+            y: { label: null, type: "band" },
+            marks: [
+                Plot.barX(chartData, {
+                    x: "count",
+                    y: "hospital_type",
+                    fill: "#e07a5f",
+                    tip: true,
+                }),
+                Plot.ruleX([0]),
+            ],
+        });
+
+        typeChartRef.current.appendChild(plot);
+        return () => plot.remove();
+    }, [filteredTypes, selectedState]);
+
     // Render in order: loading → error → empty → normal content
     if (loading) return <Spinner />;
     if (error) return <ErrorMessage message={error} />;
@@ -125,6 +178,10 @@ export default function DashboardPage() {
 
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                 <div ref={chartRef} />
+            </div>
+
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mt-8">
+                <div ref={typeChartRef} />
             </div>
         </div>
     );

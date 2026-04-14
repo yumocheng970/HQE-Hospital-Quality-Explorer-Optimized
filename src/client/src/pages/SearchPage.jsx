@@ -4,11 +4,13 @@ import Spinner from '../components/common/Spinner';
 import ErrorMessage from '../components/common/ErrorMessage';
 import EmptyState from '../components/common/EmptyState';
 import useFetch from '../hooks/useFetch';
+import useAuth from '../hooks/useAuth';
 import HospitalCard from '../components/common/HospitalCard';
 
 export default function SearchPage() {
   // URL-driven search: searchParams is the single source of truth
   const [searchParams, setSearchParams] = useSearchParams();
+  const { user, logout } = useAuth();
 
   // Local states for form inputs
   const [searchName, setSearchName] = useState(searchParams.get('name') || '');
@@ -44,17 +46,62 @@ export default function SearchPage() {
     setSearchParams(params);
   };
 
+  // Download filtered results as CSV (requires login)
+  const handleExportCSV = async () => {
+    const query = searchParams.toString();
+    const url = `http://localhost:3001/api/export/csv${query ? `?${query}` : ''}`;
+
+    try {
+      const res = await fetch(url, { credentials: 'include' });
+      if (!res.ok) throw new Error('Export failed');
+
+      const blob = await res.blob();
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'hospitals.csv';
+      link.click();
+      URL.revokeObjectURL(link.href);
+    } catch (err) {
+      alert('Failed to export CSV. Please try again.');
+    }
+  };
+
   return (
     <div className="max-w-5xl mx-auto p-8">
-      <header className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-800">Hospital Quality Explorer</h1>
-        <p className="text-gray-500 mt-2">Find and compare hospitals across the United States.</p>
-        <Link to="/query" className="text-blue-600 hover:underline text-sm">
-          Try natural language search →
-        </Link>
-        <Link to="/dashboard" className="text-blue-600 hover:underline text-sm">
-          View dashboard →
-        </Link>
+      <header className="mb-8 flex items-start justify-between">
+        <div>
+          <h1 className="text-4xl font-bold text-gray-800">Hospital Quality Explorer</h1>
+          <p className="text-gray-500 mt-2">Find and compare hospitals across the United States.</p>
+          <div className="flex gap-4 mt-1">
+            <Link to="/query" className="text-blue-600 hover:underline text-sm">
+              Try natural language search →
+            </Link>
+            <Link to="/dashboard" className="text-blue-600 hover:underline text-sm">
+              View dashboard →
+            </Link>
+          </div>
+        </div>
+        <div className="text-sm text-right">
+          {user ? (
+            <div className="flex items-center gap-3">
+              <span className="text-gray-600">
+                {user.username}
+                {user.role === 'admin' && (
+                  <span className="ml-1 bg-amber-100 text-amber-800 text-xs font-medium px-2 py-0.5 rounded">
+                    Admin
+                  </span>
+                )}
+              </span>
+              <button onClick={logout} className="text-red-600 hover:underline">
+                Sign out
+              </button>
+            </div>
+          ) : (
+            <Link to="/login" className="text-blue-600 hover:underline">
+              Sign in
+            </Link>
+          )}
+        </div>
       </header>
 
       {/* Search Controls */}
@@ -91,6 +138,15 @@ export default function SearchPage() {
         >
           {loading ? 'Searching...' : 'Search'}
         </button>
+
+        {user && hasSearched && (
+          <button
+            onClick={handleExportCSV}
+            className="border border-gray-300 text-gray-700 hover:bg-gray-100 font-semibold px-6 py-2 rounded-lg transition-colors"
+          >
+            Export CSV
+          </button>
+        )}
       </div>
 
       {/* Results */}
