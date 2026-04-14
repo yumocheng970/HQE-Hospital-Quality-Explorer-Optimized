@@ -152,7 +152,7 @@ v0.2 — Dawei Feng
 
 ---
 
-v0.2 - Iris Ge 
+v0.2 - Iris Ge
 
 ### Decision 8: Centralized Loading / Error / Empty State Handling with Shared Hook (Accepted)
 
@@ -160,15 +160,15 @@ v0.2 - Iris Ge
 **Decision:** Extract loading, error, and empty states into shared components (Spinner, ErrorMessage, EmptyState) and create a reusable useFetch hook for all API calls.
 **Reasoning:** Multiple pages (Search, Dashboard, Detail) need to handle the same async states. Without abstraction, each page would repeat useState + useEffect logic and UI patterns. By centralizing both data fetching (useFetch) and UI states (common components), we ensure consistent behavior and appearance across the app. It also reduces boilerplate and makes it easier for teammates to integrate without rewriting fetch logic.
 
-**Trade-offs** 
+**Trade-offs**
 
 - Less flexibility for highly customized fetch behavior (e.g., manual retries or special caching strategies).
 - useFetch abstracts away details, which can make debugging slightly harder if something goes wrong.
 
-
 ## v0.3
 
 ### Decision 1: Zipcode-Based Geocoding Instead of Census API (Accepted)
+
 **Date:** 2026-04-08
 
 **Decision:** Add lat/lon to the hospitals table by joining against a free zipcode-to-coordinates CSV instead of calling the Census Bureau Geocoding API.
@@ -178,7 +178,9 @@ v0.2 - Iris Ge
 **Trade-offs:** Zipcode centroids are less accurate than street-level geocoding. For a map showing hospital distribution this is fine, but it would not work for precise routing or proximity search.
 
 ---
+
 ### Dead End 2: CSV Endpoint Returning HTML Instead of CSV (Resolved)
+
 **Date:** 2026-04-08
 
 **What happened:** After implementing /api/export/csv, the endpoint was returning an HTML page instead of a CSV file. I assumed the issue was with the cookie path — the cookies.txt file was in the wrong directory, so the session was not being sent and require_auth was redirecting to an error page.
@@ -186,3 +188,50 @@ v0.2 - Iris Ge
 **Resolution:** Checked the server logs and found a 500 error, not a 401. The real problem was a typo in export.py: writer.writerows([dict(row) for r in rows]) — the variable inside the list comprehension was row but the loop variable was r. Flask was returning its default error page because the endpoint was crashing before it could return anything. Fixed the typo and the CSV downloaded correctly.
 **Lesson:** Check the server logs before assuming the problem is in the request. The HTTP status code tells whether it is an auth issue (401) or a server crash (500).
 
+## v0.3 — Dawei Feng
+
+### Decision 3: AuthContext Instead of a Plain Hook (Accepted)
+
+**Date:** 2026-04-11
+**Decision:** Implement authentication state using React Context (`AuthProvider` + `useAuth`) rather than a standalone hook that each component calls independently.
+**Reasoning:** Multiple parts of the app need the current user: the SearchPage header (show username / sign-in link), the CSV export button (only visible when logged in), and potentially ProtectedRoute. If each component called `/api/auth/me` on its own, we would have duplicate requests and inconsistent state — one component could think the user is logged in while another hasn't finished checking yet. Context gives every component the same `user` object from a single source of truth.
+
+**Trade-offs**
+
+- Any state change in AuthContext re-renders all consumers. For a simple `user` object that rarely changes, this is not a problem.
+
+---
+
+### Decision 4: credentials: 'include' on All Fetch Calls (Accepted)
+
+**Date:** 2026-04-11
+**Decision:** Add `credentials: 'include'` to every `fetch` call — both in the shared `useFetch` hook and in the standalone CSV download function.
+**Reasoning:** The Vite dev server runs on `localhost:5173` and the Flask backend on `localhost:3001`. This is a cross-origin setup, and browsers do not send cookies cross-origin by default. Without `credentials: 'include'`, the session cookie from login never reaches the backend, so every authenticated request would return 401. Discovered this during initial testing when login succeeded but `/api/auth/me` immediately returned "Not logged in."
+
+---
+
+### Decision 5: CSV Export Uses Raw fetch Instead of useFetch (Accepted)
+
+**Date:** 2026-04-11
+**Decision:** The CSV download button calls `fetch` directly in an event handler instead of using the shared `useFetch` hook.
+**Reasoning:** `useFetch` is designed for JSON data that gets stored in state and rendered on the page — it calls `res.json()` automatically and re-fetches when its dependency changes. CSV export is different: it returns a binary blob, it only fires once when the user clicks, and the response triggers a browser download instead of a state update. Forcing this through `useFetch` would mean adding blob support, manual trigger mode, and download logic to a hook that is currently simple and single-purpose. A standalone `fetch` in the click handler is clearer and keeps `useFetch` focused.
+
+---
+
+### Decision 6: ProtectedRoute Built but Not Yet Wired (Accepted)
+
+**Date:** 2026-04-11
+**Decision:** Create a `ProtectedRoute` component that checks login status and optionally checks role, but do not wrap any current routes with it.
+**Reasoning:** The v0.3 requirement is role-based access, not page-level restriction. All pages (search, detail, dashboard, map) are publicly viewable — the only feature gated behind login is CSV export, which is controlled at the button level (hidden when `user` is null). ProtectedRoute is ready if we later add an admin-only page, but adding it now to routes that don't need it would break the app for unauthenticated users who should still be able to browse.
+
+---
+
+### Decision 7: Hospital Type Chart — Frontend-First with Agreed API Contract (Accepted)
+
+**Date:** 2026-04-12
+**Decision:** Build the hospital type distribution chart on the dashboard before the backend endpoint exists, using `useFetch` pointed at the agreed-upon path `/api/stats/types-by-state`.
+**Reasoning:** The backend teammate had not finished the endpoint yet, but we agreed on the contract: `GET /api/stats/types-by-state` returns `[{ state, hospital_type, count }]`. Since `useFetch` returns `null` when a request fails, and the `useEffect` that renders the chart has a guard (`if (!filteredTypes) return`), the page does not crash — the second chart simply does not appear until the endpoint is live. This let me develop and test the chart layout, the aggregation logic, and the shared state dropdown without waiting on the backend.
+
+**Trade-offs**
+
+- If the backend returns a different shape than agreed, the chart will silently show nothing. Need to verify once the endpoint is deployed.
