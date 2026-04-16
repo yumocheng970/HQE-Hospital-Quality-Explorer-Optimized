@@ -10,7 +10,7 @@ from server.export import export_bp
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SESSION_SECRET', 'dev_secret_change-in-production')
-CORS(app)
+CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
 
 app.register_blueprint(hospitals_bp)
 app.register_blueprint(stats_bp)
