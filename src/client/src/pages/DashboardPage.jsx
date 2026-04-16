@@ -22,9 +22,12 @@ export default function DashboardPage() {
     const typeChartRef = useRef(null);
 
     // ── Hospital Type Distribution ──
-    // Backend endpoint: GET /api/stats/types-by-state
-    // Expected response: [{ state, hospital_type, count }, ...]
-    const { data: typeData } = useFetch("/api/stats/types-by-state");
+    // Backend endpoint: GET /api/stats/hospital-types?state=XX
+    // Response: [{ hospital_type, count }] — already aggregated by backend
+    const typePath = selectedState === "ALL"
+        ? "/api/stats/hospital-types"
+        : `/api/stats/hospital-types?state=${selectedState}`;
+    const { data: typeData } = useFetch(typePath);
 
     // Extract unique state names from data, prepend "ALL", sort alphabetically
     // new Set() removes duplicates, ... spreads it into an array
@@ -96,25 +99,10 @@ export default function DashboardPage() {
         return () => plot.remove();
     }, [filtered, selectedState]);
 
-    // ── Hospital Type chart: filter + aggregate + render ──
-    const filteredTypes =
-        typeData && selectedState === "ALL"
-            ? typeData
-            : typeData?.filter((d) => d.state === selectedState);
-
+    // ── Hospital Type chart: render data from backend (already aggregated) ──
     useEffect(() => {
-        if (!filteredTypes || !typeChartRef.current) return;
+        if (!typeData || !typeChartRef.current) return;
         typeChartRef.current.innerHTML = "";
-
-        // Aggregate counts by hospital_type (needed when "ALL" is selected)
-        const chartData = Object.values(
-            filteredTypes.reduce((acc, d) => {
-                const t = d.hospital_type;
-                if (!acc[t]) acc[t] = { hospital_type: t, count: 0 };
-                acc[t].count += d.count;
-                return acc;
-            }, {})
-        ).sort((a, b) => b.count - a.count); // sort descending by count
 
         const title =
             selectedState === "ALL"
@@ -129,7 +117,7 @@ export default function DashboardPage() {
             x: { label: "Number of Hospitals", grid: true },
             y: { label: null, type: "band" },
             marks: [
-                Plot.barX(chartData, {
+                Plot.barX(typeData, {
                     x: "count",
                     y: "hospital_type",
                     fill: "#e07a5f",
@@ -141,7 +129,7 @@ export default function DashboardPage() {
 
         typeChartRef.current.appendChild(plot);
         return () => plot.remove();
-    }, [filteredTypes, selectedState]);
+    }, [typeData, selectedState]);
 
     // Render in order: loading → error → empty → normal content
     if (loading) return <Spinner />;
