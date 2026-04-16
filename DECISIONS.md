@@ -235,3 +235,72 @@ v0.2 - Iris Ge
 **Trade-offs**
 
 - If the backend returns a different shape than agreed, the chart will silently show nothing. Need to verify once the endpoint is deployed.
+
+---
+
+## v0.3 — Iris Ge
+
+### Decision 8: Integrate Leaflet with useRef + useEffect Instead of a React Wrapper (Accepted)
+
+**Date:** 2026-04-16
+**Decision:** Build MapPage using the Leaflet library directly with useRef and useEffect, instead of using a React wrapper like react-leaflet.
+**Reasoning:** The project requirement explicitly called for a Leaflet map implemented with useRef + useEffect. Leaflet creates and mutates DOM-based map objects outside React's render cycle, so the cleanest integration was to keep the map instance in a ref and initialize it inside an effect after the container div mounted. This also made the cleanup logic explicit on unmount.
+
+**Trade-offs**
+
+- More manual lifecycle management than a React wrapper.
+- Need to explicitly remove the map instance and marker layers to avoid stale state or duplicate maps after re-render.
+
+---
+
+### Decision 9: Marker Clustering for State-Level Hospital Maps (Accepted)
+
+**Date:** 2026-04-16
+**Decision:** Use leaflet.markercluster to group nearby hospital markers instead of rendering every marker individually at all zoom levels.
+**Reasoning:** Even when filtered to a single state, the hospital dataset can still contain over 100 locations. Rendering all points individually makes dense regions hard to read and causes overlap in urban areas. Marker clustering improves usability by showing density first, then revealing individual hospitals as the user zooms in.
+
+**Trade-offs**
+
+- Users cannot immediately see every individual hospital at the default zoom level.
+- Adds one more dependency and plugin-specific behavior to debug.
+
+
+---
+
+### Decision 10: Color Markers by hospital_overall_rating Instead of Hospital Type (Accepted)
+
+**Date:** 2026-04-16
+**Decision:** 2026Encode marker color using hospital_overall_rating so the map communicates quality at a glance.
+**Reasoning:** The map already shows location, so using color for a second dimension makes the view more informative. Overall rating is more intuitive for users than hospital type in a geographic view, and it aligns well with the rest of the app where ratings are also emphasized in cards and charts.
+
+**Trade-offs**
+
+- Hospitals with missing ratings fall back to a neutral color, which is less informative.
+- Color alone may not be fully accessible for all users, so the popup still needs to show the numeric rating.
+
+---
+
+
+### Decision 11: State Dropdown Drives a Fresh API Request Instead of Client-Side Filtering All Hospitals (Accepted)
+
+**Date:** 2026-04-16
+**Decision:** Filter map data by state through the API request (/api/hospitals?state=XX) instead of fetching all hospitals once and filtering in the browser.
+**Reasoning:** The state dropdown is a natural way to reduce map density and improve performance. Fetching only the selected state's hospitals keeps the payload smaller, avoids unnecessary marker work on the client, and makes the map faster to re-render when the selected state changes.
+
+**Trade-offs**
+
+- Changing the dropdown triggers another network request.
+- If users wanted to compare multiple states at once, this design would need to be revisited.
+
+---
+
+### Decision 11: State Dropdown Drives a Fresh API Request Instead of Client-Side Filtering All Hospitals (Accepted)
+
+**Date:** 2026-04-16
+**Decision:** Filter map data by state through the API request (/api/hospitals?state=XX) instead of fetching all hospitals once and filtering in the browser.
+**Reasoning:** The state dropdown is a natural way to reduce map density and improve performance. Fetching only the selected state's hospitals keeps the payload smaller, avoids unnecessary marker work on the client, and makes the map faster to re-render when the selected state changes.
+
+**Trade-offs**
+
+- Changing the dropdown triggers another network request.
+- If users wanted to compare multiple states at once, this design would need to be revisited.
