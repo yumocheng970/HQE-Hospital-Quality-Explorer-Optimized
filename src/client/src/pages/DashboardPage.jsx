@@ -20,6 +20,7 @@ export default function DashboardPage() {
     // Used because Observable Plot generates raw DOM nodes, not React components
     const chartRef = useRef(null);
     const typeChartRef = useRef(null);
+    const edChartRef = useRef(null);
 
     // ── Hospital Type Distribution ──
     // Backend endpoint: GET /api/stats/hospital-types?state=XX
@@ -28,6 +29,23 @@ export default function DashboardPage() {
         ? "/api/stats/hospital-types"
         : `/api/stats/hospital-types?state=${selectedState}`;
     const { data: typeData } = useFetch(typePath);
+
+    // ── ED Wait Time ──
+    // Backend endpoint: GET /api/stats/ed-wait-times?state=XX
+    const edPath =
+    selectedState === "ALL"
+        ? "/api/stats/ed-wait-times"
+        : `/api/stats/ed-wait-times?state=${selectedState}`;
+
+    const { data: edData } = useFetch(edPath);
+
+    // Shorten long CMS labels for chart display
+    function shortWaitLabel(name) {
+    if (!name) return "Unknown";
+    if (name.includes("transfer patients")) return "ED transfer wait";
+    if (name.includes("before leaving from the visit")) return "ED visit wait";
+    return name.length > 36 ? `${name.slice(0, 36)}...` : name;
+    }
 
     // Extract unique state names from data, prepend "ALL", sort alphabetically
     // new Set() removes duplicates, ... spreads it into an array
@@ -131,6 +149,43 @@ export default function DashboardPage() {
         return () => plot.remove();
     }, [typeData, selectedState]);
 
+    // ── ED wait time chart ──
+    useEffect(() => {
+        if (!edData || !edChartRef.current) return;
+        edChartRef.current.innerHTML = "";
+
+        const title =
+            selectedState === "ALL"
+                ? "Average ED Wait Times — All States"
+                : `Average ED Wait Times — ${selectedState}`;
+
+        const chartData = edData.map((d) => ({
+            ...d,
+            short_label: shortWaitLabel(d.measure_name),
+        }));
+
+        const plot = Plot.plot({
+            title,
+            width: 700,
+            height: 400,
+            marginLeft: 180,
+            x: { label: "Average wait time (minutes)", grid: true },
+            y: { label: null, type: "band" },
+            marks: [
+                Plot.barX(chartData, {
+                    x: "avg_score",
+                    y: "short_label",
+                    fill: "#4f46e5",
+                    tip: true,
+                }),
+                Plot.ruleX([0]),
+            ],
+        });
+
+        edChartRef.current.appendChild(plot);
+        return () => plot.remove();
+    }, [edData, selectedState]);
+
     // Render in order: loading → error → empty → normal content
     if (loading) return <Spinner />;
     if (error) return <ErrorMessage message={error} />;
@@ -170,6 +225,10 @@ export default function DashboardPage() {
 
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mt-8">
                 <div ref={typeChartRef} />
+            </div>
+
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mt-8">
+        <div ref={edChartRef} />
             </div>
         </div>
     );
