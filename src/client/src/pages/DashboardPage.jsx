@@ -113,7 +113,7 @@ export default function DashboardPage() {
             title,
             width: 700,
             height: 400,
-            marginLeft: 180, // room for long type labels
+            marginLeft: 200, // room for long type labels
             x: { label: "Number of Hospitals", grid: true },
             y: { label: null, type: "band" },
             marks: [
