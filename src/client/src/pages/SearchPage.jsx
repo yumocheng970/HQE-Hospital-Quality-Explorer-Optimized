@@ -82,6 +82,11 @@ export default function SearchPage() {
             <Link to="/map" className="text-blue-600 hover:underline text-sm">
               View map →
             </Link>
+            {user?.role === 'admin' && (
+              <Link to="/admin" className="text-blue-600 hover:underline text-sm">
+                Admin panel →
+              </Link>
+            )}
           </div>
         </div>
         <div className="text-sm text-right">

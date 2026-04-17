@@ -9,23 +9,19 @@ if ! conda env list | grep -q "^hqe "; then
     cd src && conda run -n hqe python -m etl.load && cd ..
 fi
 
-# Backend
-cd src
-conda run -n hqe flask --app server.main run --port 3001 &
-BACKEND_PID=$!
-
-# Frontend
-cd client
+# Build frontend
+echo "Building frontend..."
+cd src/client
 if command -v yarn &> /dev/null; then
-    yarn && yarn dev &
+    yarn && yarn build
 else
-    npm install && npm run dev &
+    npm install && npm run build
 fi
-FRONTEND_PID=$!
+cd ../..
 
-echo "Backend running on http://localhost:3001"
-echo "Frontend running on http://localhost:5173"
-echo "Press Ctrl+C to stop."
+# Start Flask (serves both API and frontend static files)
+echo "Starting server..."
+cd src
+conda run -n hqe flask --app server.main run --port 3001
 
-trap "kill $BACKEND_PID $FRONTEND_PID" INT
-wait
+echo "App running at http://localhost:3001"
