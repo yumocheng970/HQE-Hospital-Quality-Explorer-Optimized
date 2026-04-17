@@ -1,4 +1,3 @@
-
 ---
 
 ## Milestones
@@ -47,10 +46,13 @@
 | `GET /api/export/csv` returns filtered results as CSV download | Yumo | |
 | Front end built and served as static files from Flask | Yumo | |
 | `SESSION_SECRET` in AWS Parameter Store; loaded at startup | Yumo | |
-| `LoginPage` with form, redirect on success, error on failure | Dawei | |
-| `ProtectedRoute` redirecting unauthenticated users to `/login` | Dawei | |
-| `useAuth` hook exposing current user, login, logout | Dawei | |
-| CSV download button on `SearchPage` | Dawei | |
+| `LoginPage` with form, redirect on success, error on failure | Dawei | Done |
+| `ProtectedRoute` redirecting unauthenticated users to `/login` | Dawei | Done |
+| `useAuth` hook exposing current user, login, logout | Dawei | Done |
+| CSV download button on `SearchPage` | Dawei | Done |
+| `credentials: 'include'` added to `useFetch` for cross-origin cookies | Dawei | Done |
+| User status display and sign-out button in `SearchPage` header | Dawei | Done |
+| Hospital type distribution chart on `DashboardPage` | Dawei | Done |
 | `MapPage`: Leaflet map via `useRef` + `useEffect`, cleaned up on unmount | Ge Ge | |
 | Markers clustered, color-coded by `overall_rating`, popup with name/rating/link | Ge Ge | |
 | State dropdown filtering map markers | Ge Ge | |
@@ -61,10 +63,10 @@
 
 ## Contingencies
 
-| Risk | Contingency |
-|------|-------------|
-| ETL fails or bad data | Fix column mapping manually; skip geocoding if needed; use ~50 hardcoded hospitals to unblock front end |
-| Leaflet + React issues | Build standalone proof-of-concept first; use `key` prop workaround; fall back to PDF scorecard if map fails |
-| AWS deployment fails | Deploy minimal API-only version by Week 12; document as known limitation if Parameter Store fails |
-| Scope creep | Stretch goals frozen until all v0.3 deliverables done; cut order: additional charts → PDF → map filter |
-| Yumo blocked on ETL/API | Dawei and Ge Ge build against mock data, swap in real API calls later |
+| Risk                    | Contingency                                                                                                 |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------- |
+| ETL fails or bad data   | Fix column mapping manually; skip geocoding if needed; use ~50 hardcoded hospitals to unblock front end     |
+| Leaflet + React issues  | Build standalone proof-of-concept first; use `key` prop workaround; fall back to PDF scorecard if map fails |
+| AWS deployment fails    | Deploy minimal API-only version by Week 12; document as known limitation if Parameter Store fails           |
+| Scope creep             | Stretch goals frozen until all v0.3 deliverables done; cut order: additional charts → PDF → map filter      |
+| Yumo blocked on ETL/API | Dawei and Ge Ge build against mock data, swap in real API calls later                                       |
