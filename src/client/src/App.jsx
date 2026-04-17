@@ -6,6 +6,7 @@ import DashboardPage from "./pages/DashboardPage";
 import QueryPage from "./pages/QueryPage";
 import LoginPage from "./pages/LoginPage";
 import MapPage from "./pages/MapPage";
+import AdminPage from "./pages/AdminPage";
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
             <Route path="/hospital/:id" element={<HospitalDetailPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/map" element={<MapPage />} />
+            <Route path="/admin" element={<AdminPage />} />
           </Routes>
         </div>
       </BrowserRouter>
